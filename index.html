@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PJT Farm Management System - BUMDes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <header class="mb-8 flex flex-wrap justify-between items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-emerald-600">🐔 PJT Farm Management System - BUMDes</h1>
+                <p class="text-gray-500">Sistem Pencatatan Produksi & Keuangan Harian</p>
+            </div>
+            <div class="flex gap-2">
+                <button id="btnDownload" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow text-sm font-semibold">Download Laporan</button>
+                <button id="btnReset" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg shadow text-sm font-semibold">Reset Bulanan</button>
+            </div>
+        </header>
+
+        <!-- BAGIAN BARU: Financial Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <!-- Card Pemasukan -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Total Pemasukan</p>
+                    <p id="totalPemasukan" class="text-2xl font-bold text-emerald-600 mt-1">Rp 0</p>
+                </div>
+                <div class="p-3 bg-emerald-50 rounded-full text-emerald-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 17l6-6 4 4 8-8M14 7h7v7" /></svg>
+                </div>
+            </div>
+            <!-- Card Pengeluaran -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Total Pengeluaran</p>
+                    <p id="totalPengeluaran" class="text-2xl font-bold text-red-500 mt-1">Rp 0</p>
+                </div>
+                <div class="p-3 bg-red-50 rounded-full text-red-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7l6 6 4-4 8 8M21 17v-7h-7" /></svg>
+                </div>
+            </div>
+            <!-- Card Saldo -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Saldo Akhir</p>
+                    <p id="totalSaldo" class="text-2xl font-bold text-blue-600 mt-1">Rp 0</p>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-full text-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Chart Section -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <h2 class="text-xl font-semibold mb-4">Tren Produksi vs Terjual (7 Hari Terakhir)</h2>
+                <div class="relative h-80">
+                    <canvas id="productionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Form Section -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <h2 class="text-xl font-semibold mb-4">Input Data Harian</h2>
+                <form id="dataForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Tanggal</label>
+                        <input type="date" id="tanggal" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 p-2 border">
+                    </div>
+                    
+                    <div class="border-t pt-4">
+                        <h3 class="font-medium text-gray-800 mb-2">Produksi</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm text-gray-600">Produksi (Kg)</label>
+                                <input type="number" step="0.1" id="produksi" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-600">Terjual (Kg)</label>
+                                <input type="number" step="0.1" id="terjual" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-4">
+                        <h3 class="font-medium text-gray-800 mb-2">Keuangan</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm text-gray-600">Pemasukan (Rp)</label>
+                                <input type="number" id="pemasukan" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-600">Pengeluaran (Rp)</label>
+                                <input type="number" id="pengeluaran" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 rounded-lg shadow transition flex justify-center items-center">
+                        <span id="btnText">Simpan Data</span>
+                        <svg id="btnSpinner" class="hidden animate-spin h-5 w-5 text-white ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifikasi Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 hidden px-4 py-2 rounded-lg shadow-lg text-white text-sm transition-opacity duration-300"></div>
+
+    <script>
+        // GANTI INI DENGAN URL WEB APP ANDA
+        const API_URL = 'GANTI_DENGAN_WEB_APP_URL';
+        let productionChart;
+
+        // Format Rupiah
+        function formatRupiah(angka) {
+            return 'Rp ' + (angka || 0).toLocaleString('id-ID');
+        }
+
+        // Inisialisasi Chart
+        function initChart(data) {
+            const ctx = document.getElementById('productionChart').getContext('2d');
+            if (productionChart) productionChart.destroy();
+
+            productionChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            label: 'Produksi (Kg)',
+                            data: data.produksi,
+                            borderColor: 'rgb(16, 185, 129)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Terjual (Kg)',
+                            data: data.terjual,
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // Fetch Data Chart & Keuangan
+        async function fetchChartData() {
+            try {
+                const res = await fetch(`${API_URL}?action=getChartData`);
+                const data = await res.json();
+                
+                if (!data.error) {
+                    initChart(data);
+                    
+                    // Update Kartu Keuangan
+                    document.getElementById('totalPemasukan').textContent = formatRupiah(data.totalPemasukan);
+                    document.getElementById('totalPengeluaran').textContent = formatRupiah(data.totalPengeluaran);
+                    document.getElementById('totalSaldo').textContent = formatRupiah(data.saldo);
+                }
+            } catch (error) {
+                console.error('Error fetching:', error);
+                showToast('Gagal memuat data dashboard', 'bg-red-500');
+            }
+        }
+
+        // Toast Notification
+        function showToast(message, bgColor = 'bg-emerald-500') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `fixed bottom-5 right-5 px-4 py-2 rounded-lg shadow-lg text-white text-sm ${bgColor}`;
+            toast.classList.remove('hidden');
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                    toast.classList.remove('opacity-0');
+                }, 300);
+            }, 3000);
+        }
+
+        // Form Submit Logic
+        document.getElementById('dataForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('btnSpinner');
+            
+            btn.disabled = true;
+            btnText.textContent = 'Menyimpan...';
+            spinner.classList.remove('hidden');
+
+            const payload = {
+                tanggal: document.getElementById('tanggal').value,
+                produksi: document.getElementById('produksi').value,
+                terjual: document.getElementById('terjual').value,
+                pemasukan: document.getElementById('pemasukan').value,
+                pengeluaran: document.getElementById('pengeluaran').value
+            };
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+
+                if (result.status === 'success') {
+                    showToast('✅ Data harian berhasil disimpan!');
+                    document.getElementById('dataForm').reset();
+                    fetchChartData(); // Refresh chart & cards
+                } else {
+                    showToast('❌ Gagal menyimpan: ' + result.error, 'bg-red-500');
+                }
+            } catch (error) {
+                showToast('❌ Error koneksi ke server', 'bg-red-500');
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'Simpan Data';
+                spinner.classList.add('hidden');
+            }
+        });
+
+        // Tombol Reset Data
+        document.getElementById('btnReset').addEventListener('click', async () => {
+            const confirmation = prompt("PERINGATAN: Semua data produksi dan keuangan akan dihapus permanen! Ketik 'HAPUS' untuk konfirmasi.");
+            
+            if (confirmation === 'HAPUS') {
+                try {
+                    const res = await fetch(`${API_URL}?action=resetData`);
+                    const result = await res.json();
+                    if (result.status === 'success') {
+                        showToast('🗑️ Semua data berhasil direset!', 'bg-red-500');
+                        fetchChartData(); // Refresh dashboard (angka kembali ke 0)
+                    }
+                } catch (error) {
+                    showToast('Gagal mereset data', 'bg-red-500');
+                }
+            } else if (confirmation !== null) {
+                showToast('Konfirmasi salah. Reset dibatalkan.', 'bg-gray-500');
+            }
+        });
+
+        // Set tanggal hari ini
+        document.getElementById('tanggal').valueAsDate = new Date();
+        window.onload = fetchChartData;
+    </script>
+</body>
+</html>
