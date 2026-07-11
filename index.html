@@ -118,7 +118,7 @@
     <div id="toast" class="fixed bottom-5 right-5 hidden px-4 py-2 rounded-lg shadow-lg text-white text-sm transition-opacity duration-300"></div>
 
     <script>
-        // GANTI INI DENGAN URL WEB APP ANDA
+        // URL WEB APP ANDA
         const API_URL = 'https://script.google.com/macros/s/AKfycbzKw-M4BvlyCVqawr-CS0Vhq17SUoKDwYGjGWDLnZn2xjdJD9EhwwKoWsltIYFnJf6V/exec';
         let productionChart;
 
@@ -199,7 +199,7 @@
             }, 3000);
         }
 
-        // Form Submit Logic
+        // Form Submit Logic (PERBAIKAN CORS ADA DI SINI)
         document.getElementById('dataForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
@@ -210,30 +210,33 @@
             btnText.textContent = 'Menyimpan...';
             spinner.classList.remove('hidden');
 
-            const payload = {
-                tanggal: document.getElementById('tanggal').value,
-                produksi: document.getElementById('produksi').value,
-                terjual: document.getElementById('terjual').value,
-                pemasukan: document.getElementById('pemasukan').value,
-                pengeluaran: document.getElementById('pengeluaran').value
-            };
+            // Menggunakan FormData agar lolos blokir CORS
+            const formData = new FormData();
+            formData.append('tanggal', document.getElementById('tanggal').value);
+            formData.append('produksi', document.getElementById('produksi').value);
+            formData.append('terjual', document.getElementById('terjual').value);
+            formData.append('pemasukan', document.getElementById('pemasukan').value);
+            formData.append('pengeluaran', document.getElementById('pengeluaran').value);
 
             try {
                 const res = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: formData,
+                    redirect: 'follow' // Wajib ada untuk bypass preflight Google
                 });
                 const result = await res.json();
 
                 if (result.status === 'success') {
                     showToast('✅ Data harian berhasil disimpan!');
                     document.getElementById('dataForm').reset();
+                    // Set tanggal kembali ke hari ini setelah form dikosongkan
+                    document.getElementById('tanggal').valueAsDate = new Date();
                     fetchChartData(); // Refresh chart & cards
                 } else {
                     showToast('❌ Gagal menyimpan: ' + result.error, 'bg-red-500');
                 }
             } catch (error) {
+                console.error(error);
                 showToast('❌ Error koneksi ke server', 'bg-red-500');
             } finally {
                 btn.disabled = false;
